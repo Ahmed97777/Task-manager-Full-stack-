@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const connectDB = require("./DB/connect");
+require("dotenv").config();
 
 const tasksRouter = require("./routes/tasksRoute");
 const port = 3000;
@@ -20,6 +22,16 @@ app.use("*", (req, res) => {
   res.status(404).send("Resource page not found 😥");
 });
 
-app.listen(port, () => {
-  console.log("Server is up and running");
-});
+// connect to mongoDB first, if success run server
+const startDB = async () => {
+  try {
+    await connectDB(process.env.MONGO_URI);
+    app.listen(port, () => {
+      console.log("Server is up and running");
+    });
+  } catch (error) {
+    console.error("Error connecting:", error);
+  }
+};
+
+startDB();
