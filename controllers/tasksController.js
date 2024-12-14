@@ -1,21 +1,72 @@
-const getAllTasks = (req, res) => {
-  res.json({ getAllTasks: "success" });
+const Task = require("../models/Task");
+
+const getAllTasks = async (req, res) => {
+  try {
+    const tasks = await Task.find({});
+    res.status(200).json({ tasks });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const createTask = (req, res) => {
-  res.json({ createTask: "success" });
+const createTask = async (req, res) => {
+  try {
+    const task = await Task.create(req.body);
+    res.status(201).json({ task });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const getSingleTask = (req, res) => {
-  res.json({ getSingleTask: req.params.id });
+const getSingleTask = async (req, res) => {
+  try {
+    const { id: taskId } = req.params;
+    const task = await Task.findOne({ _id: taskId });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ msg: `No task with the provided ID ${taskId}` });
+    }
+    res.status(200).json({ task });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const updateTask = (req, res) => {
-  res.json({ updateTask: req.params.id });
+const deleteTask = async (req, res) => {
+  try {
+    const { id: taskId } = req.params;
+    const task = await Task.findOneAndDelete({ _id: taskId });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ msg: `No task with the provided ID ${taskId}` });
+    }
+    res.status(200).json({ operation: "success deletion", task });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
-const deleteTask = (req, res) => {
-  res.json({ deleteTask: req.params.id });
+const updateTask = async (req, res) => {
+  try {
+    const { id: taskId } = req.params;
+    if (!req.body || Object.keys(req.body).length === 0) {
+      return res.status(400).json({ msg: `No data body was provided` });
+    }
+    const task = await Task.findOneAndUpdate({ _id: taskId }, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    if (!task) {
+      return res
+        .status(404)
+        .json({ msg: `No task with the provided ID ${taskId}` });
+    }
+    res.status(200).json({ operation: "update success", task });
+  } catch (error) {
+    res.status(500).json({ msg: error });
+  }
 };
 
 module.exports = {
